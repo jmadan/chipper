@@ -1,9 +1,11 @@
 use axum::{
     routing::{get},
-    Router
+    Router, http::StatusCode
 };
 // use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+mod router;
+mod users;
 
 #[tokio::main]
 async fn main() {
@@ -12,8 +14,9 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/", get(root));
+        .route("/", get(root))
+        .nest("/api", router::router())
+        .fallback(fallback);
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
@@ -28,4 +31,8 @@ async fn main() {
 // basic handler that responds with a static string
 async fn root() -> &'static str {
     "Hello, Chipper!"
+}
+
+async fn fallback() -> (StatusCode, &'static str) {
+    (StatusCode::NOT_FOUND, "Not Found")
 }
